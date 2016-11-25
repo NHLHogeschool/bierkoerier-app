@@ -1,189 +1,185 @@
-#Les 2
+#CRUD
+Create, ~~Read, Update, Delete~~
 
-We gaan eerst wat basis commando's langs! Elk commando heeft een handleiding ingebouwd, super handig vooral als je nieuwe commando's gaat gebruiken. Wil je weten wat een commando kan?
+#Producten aanmaken
 
-	man cd <- man staat voor manual
-	cd <- change directory
-	cd ../ <-- een enkel mapje terug
-	
-Pro tip: Gebruik tab tijdens het gebruik van cd, dan hoef je niet de volledige mapnaam te kennen ;)
+We hebben nu een producten pagina, maar vol met 'nep' producten, wij willen dit uiteindelijk ook zelf kunnen aanmaken, dus maken we een nieuwe route aan deze geven we ook een naam (maar waarom?) dat zie je zo!
 
-	ls <- list
-	ls -lah <- met schrijfrechten en andere foefjes
-	mkdir <-- maak een mapje
-	touch hoi.txt <-- maak een bestand
-	rm hoi.txt <-- verwijder bestand
-	rm -rf mapje <-- haal een mapje weg (rf staat voor recursief en force)
-	rm -rf / <-- de bekende linux grap, doe dit nooit.
-	
-
-Ga naar je project 
-	
-	cd ~/sites/bierkoerier
-
-![ERD](ERD.png)
-
-- Forgein Keys
-- Primary Key
-- Waarom dit veld type?
-- Waarom deze relaties?
-
-We gaan een route maken, in het volgende bestand:
-`routes/web.php`
-
-	Route::get('/products', 'ProductController@index');
-
-Ga naar 
-	
-	bierkoerier.dev/products of localhost:8000/products
-	
-We gaan controller maken. Voer dit uit in je command line.
-
-ProductController
-
-	php artisan make:controller ProductsController
-
-Ga naar het volgende bestand:
-`App/Http/Controllers/ProductsController.php`
-
-Maak vervolgens een index actie in de Controller:
+Pas eerst de bestaande route aan, geeft deze een naam.
 
 ```php
-public function index() {
-  		return view('products.index');
+Route::get('/products', 'ProductsController@index')->name('products');
+```
+
+Maar waar gaan we deze route gebruiken? Misschien wel handig om een link toe te voegen aan het huidige "menu" (naast login en logout).
+
+Ga vervolgens naar `resources/views/app.blade.php` en voeg daar het volgende menu item aan het huidige menu. Hier staat al een hoop standaard code waaronder code die checkt of je al ingelogt bent ja of nee (mega handig).
+
+Voeg deze regel toe, in de @else van de authenticatie check.
+
+```html
+<li><a href="{{ route('products') }}">Producten</a></li>
+```
+
+Een link naar onze producten pagina!
+Pas het bestand `index.blade.php` aan in het mapje `resources/views/products`
+
+```php
+
+<div class="container">
+    <h1>Bierkoerier Producten</h1>
+    <div class="panel panel-default">
+        <div class="panel-heading">Acties</div>
+            <div class="panel-body">
+                <a href="{{route('create-product')}}" class="btn btn-primary">
+                    <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Product Toevoegen
+                </a>
+        </div>
+    </div>
+    <table class="table table-bordered" style="background-color: white">
+        <tr>
+            <th>#</th>
+            <th>Naam</th>
+            <th>Beschrijving</th>
+            <th>Status</th>
+        </tr>
+        @foreach ($products as $product)
+        <tr>
+            <td>{{ $product->id }}</td>
+            <td>{{ $product->name }}</td>
+            <td>{{ $product->description }}</td>
+            <td>
+                @if($product->status == 0)
+                <span>Niet beschikbaar</span>
+                @else
+                <span>Beschikbaar</span>
+                @endif
+            <td>
+        </tr>
+        @endforeach
+    </table>
+</div>
+```
+
+Pas vervolgens de route file aan om de nieuwe link af te vangen.
+
+```php
+Route::get('/products/new', 'ProductsController@create')->name('create-product');
+```
+
+Zoals je net zag staat de homepagina staat nu vol met Laravel poep, dat willen we niet meer! Ga naar `welcome.blade.php` maak deze leeg, en knal de volgende code erin.
+
+```php
+@extends('layouts.app')
+@section('content')
+
+	<div class="container">
+		<h1>Welkom!</h1>
+	</div>
+
+@endsection
+
+```
+
+Nu zie je de voordelen van Blade, dankzij de @extends functie kunnen je erg gemakkelijk templates van elkaar laten extenden. Dit betekent dat alles wat in `app.blade.php` staat, om de section @content heen wordt geplaatst. Dus ook het menu!
+
+Ga vervolgens naar de homepagina en check je werk!
+
+We gaan logica maken voor het toevoegen van producten.
+Zet de volgende functie in de `ProductsController`
+
+```php
+  public function create() {
+    return view('products.new');
   }
 ```
 
-En nu zie je al wat?
+Maak een view aan in `/resources/views/products/new.blade.php`
+Zet het volgende in dit bestand:
+
+```php
+
+@extends('layouts.app')
+@section('content')
+<div class="container">
+	<h1>Product admin</h1>
+	<form method="post">
+	    <div class="form-group">
+	        <label for="name">Naam</label>
+	        <input type="text" name="name" id="name" class="form-control"/>
+	    </div>
+	        <div class="form-group">
+	        <label for="description">Beschrijving</label>
+	        <textarea name="description" id="description" class="form-control"/></textarea>
+	    </div>
+	    <div class="form-group">
+	        <label for="price">Prijs</label>
+	        <input type="number" name="price" id="price" class="form-control"/>
+	    </div>
+	    <div class="form-group">
+	        <div class="checkbox">
+	            <label for="status"><input type="checkbox" value="1" name="status" checked>Actief</label>
+	        </div>
+	    </div>
+	    {{ csrf_field() }}
+	    <input type="submit" name="submit" class="btn btn-succes" value="Opslaan">
+	</form>
+</div>
+@endsection
+
+```
+
+We gaan eerst een route toevoegen om onze post af te vangen en het nieuwe product op te slaan.
+
+```php
+Route::post('products/new', 'ProductsController@store')
+```
+
+Maak de volgende functie in de `ProductsController`
+
+```php
+
+public function store(Request $request) {
+
+	$product = new Product;
 	
-	bierkoerier.dev/products of localhost:8000/products
- 
- View maken
- Maak een mapje aan genaamd "products" in de volgende folder:
-
- `resources/views`
- 
- Maak een index.blade.php bestand in de volgende folder:
- 
- `resources/views/products/index.blade.php`
-
-Zet hier het volgende in:
-
-```html
-<h1>Bierkoerier Producten</h1>
-
-Hier moeten uiteindelijk producten komen..
-```
-Ga nu naar <http://localhost/products>, wat zie je?
-
-We gaan nu een model maken voor onze producten,
-We willen dat onze producten het volgende bevatten:
-Pas de .env file aan
-
-	touch storage/database.sqlite
-
-```ini
-	DB_CONNECTION=sqlite
-	DB_DATABASE=/Users/{username}/Projecten/bierkoerier_new/storage/database.sqlite
-```
-
-`php artisan make:model Product --migration`
-
-Dit maakt een model en een bijpassende migration aan in de folder
-`database/migrations`
-
-Voeg daar het volgende aan toe:
-
-```php
-$table->increments('id');
-$table->string('name');
-$table->text('description')->nullable();
-$table->integer('status');
-$table->float('price')->nullable();
-$table->float('vat')->nullable();
-$table->timestamps();
-```
-
-	php artisan migrate
-
-uitvoeren!!!!
-
-We hebben nu een structuur gemaakt voor onze database, maar nog geen data!
-Daarvoor hebben we Tinker en Faker!
-
-	php artisan tinker
-
-Je bent nu via de console direct in contact met jou specifieke laravel project, en daar kan je echt coole dingen doen.`
-
-Dit commando haalt bijvoorbeeld alle producten op, zie al wat?
-
-	App\Product::all();
-
-Ah lap zeg, geen producten, laten we wat nepproducten maken!
-
-We gaan een faker classe gebruiken.
-
-`database/factories/ModelFactories.php`
-
-Voeg hier het volgende aan toe:
-Voor meer mogelijkheden zie:
-
-[Faker Documentatie](https://github.com/fzaninotto/Faker)
-
-```php
-$factory->define(App\Product::class, function (Faker\Generator $faker) {
-    return [
-        'name' => $faker->name,
-        'price' => $faker->randomNumber(5),
-        'description' => $faker->text,
-        'status' => 0
-    ];
-});
-```
-
-We maken nu een nep product aan, Faker is echt cool want je kan allemaal shit faken! (Fake it 'til you make it)
-
-Voer nu het volgende uit in je artisan tinker omgeving:
-
-	php artisan tinker
-	factory(App\Product::class, 10)->create();
-	App\Product::all();
-
-Producten?!
-
-De productsController moet er nu als volgt uitzien.
-
-```php
-namespace App\Http\Controllers;
-use Illuminate\Http\Request;
-use App\Product;
-
-class ProductsController extends Controller
-{
-
-    public function index() {
-        $products = Product::all();
-        return view('products.index', compact('products'));
-    }
-
+	$this->validate($request,
+	[
+	    'name' => 'required|max:255',
+	    'price' => 'required',
+	    'description' => 'max:255',
+	    'status' => 'required',
+	]);
+	
+	$product->name = $request->name;
+	$product->price 	= $request->price;
+	$product->status = $request->status;
+	$product->description = $request->description;
+	$product->save();
+	
+	return redirect('/products');
 }
+
 ```
 
-
-Zet nu het volgende in je view: oftewel `index.blade.php`
+Maar wacht we zien nog geen errors wanneer je niks invult!
+Zet dit stukje code in je `new.blade.php` bestand om de errors te zien!
 
 ```php
-@foreach ($products as $product)
-<li>{{$product->name}}</li>
-<li>{{$product->price}}</li>
-<li>{{$product->description}}</li>
-<li>{{$product->status}}</li>
-@endforeach
+@if (count($errors) > 0)
+     <div class="alert alert-danger">
+         <ul>
+             @foreach ($errors->all() as $error)
+                 <li>{{ $error }}</li>
+             @endforeach
+         </ul>
+     </div>
+ @endif
 ```
 
-Zie je producten?!
-Zo niet, alle stappen even bij langs en anders bij ons langs :)
+Als het goed is kunnen we nu producten toevoegen en zien wij deze verschijnen in ons tabel! Daarnaast worden ze gevalideerd!
 
-Opdracht les 2:
-Maak ook neppe gebruikers aan aan de hand van een faker en denk na over hoe deze gebruikers producten kunnen gaan bestellen, wat hebben we dan nodig?
+*Opdracht:*
+Maak een flash message wanneer er een nieuwe product is aangemaakt!
+Zie: https://laracasts.com/series/laravel-5-fundamentals/episodes/20 voor hulp!
 
