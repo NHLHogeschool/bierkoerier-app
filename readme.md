@@ -31,7 +31,7 @@ Ga naar je project
 We gaan een route maken, in het volgende bestand:
 `routes/web.php`
 
-	Route::get('/products', 'ProductController@index');
+	Route::get('/products', 'ProductsController@index');
 
 Ga naar 
 	
