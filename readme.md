@@ -1,185 +1,60 @@
-#CRUD
-Create, ~~Read, Update, Delete~~
+#Les 4
+We hebben nu een lijstje van producten, maar stel iemand wil een product kopen, wat hebben we nodig?
 
-#Producten aanmaken
+"Stel je hebt een winkel, hoe ga je bijhouden wie jou producten koopt?"
 
-We hebben nu een producten pagina, maar vol met 'nep' producten, wij willen dit uiteindelijk ook zelf kunnen aanmaken, dus maken we een nieuwe route aan deze geven we ook een naam (maar waarom?) dat zie je zo!
-
-Pas eerst de bestaande route aan, geeft deze een naam.
+Maak eerst een nieuwe controller een `OrdersController`
+Maak een nieuwe methode aan genaamd create.
 
 ```php
-Route::get('/products', 'ProductsController@index')->name('products');
+public function create() {
+  return view('orders.create');
+}
 ```
 
-Maar waar gaan we deze route gebruiken? Misschien wel handig om een link toe te voegen aan het huidige "menu" (naast login en logout).
+Maak vervolgens een mapje aan in `resources/views/` genaamd `orders` met daarin het bestand `create.blade.php`
 
-Ga vervolgens naar `resources/views/app.blade.php` en voeg daar het volgende menu item aan het huidige menu. Hier staat al een hoop standaard code waaronder code die checkt of je al ingelogt bent ja of nee (mega handig).
-
-Voeg deze regel toe, in de @else van de authenticatie check.
+Zet daar de volgende HTML in:
 
 ```html
-<li><a href="{{ route('products') }}">Producten</a></li>
-```
-
-Een link naar onze producten pagina!
-Pas het bestand `index.blade.php` aan in het mapje `resources/views/products`
-
-```php
-
-<div class="container">
-    <h1>Bierkoerier Producten</h1>
-    <div class="panel panel-default">
-        <div class="panel-heading">Acties</div>
-            <div class="panel-body">
-                <a href="{{route('create-product')}}" class="btn btn-primary">
-                    <span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Product Toevoegen
-                </a>
-        </div>
-    </div>
-    <table class="table table-bordered" style="background-color: white">
-        <tr>
-            <th>#</th>
-            <th>Naam</th>
-            <th>Beschrijving</th>
-            <th>Status</th>
-        </tr>
-        @foreach ($products as $product)
-        <tr>
-            <td>{{ $product->id }}</td>
-            <td>{{ $product->name }}</td>
-            <td>{{ $product->description }}</td>
-            <td>
-                @if($product->status == 0)
-                <span>Niet beschikbaar</span>
-                @else
-                <span>Beschikbaar</span>
-                @endif
-            <td>
-        </tr>
-        @endforeach
-    </table>
-</div>
-```
-
-Pas vervolgens de route file aan om de nieuwe link af te vangen.
-
-```php
-Route::get('/products/new', 'ProductsController@create')->name('create-product');
-```
-
-Zoals je net zag staat de homepagina staat nu vol met Laravel poep, dat willen we niet meer! Ga naar `welcome.blade.php` maak deze leeg, en knal de volgende code erin.
-
-```php
-@extends('layouts.app')
-@section('content')
-
-	<div class="container">
-		<h1>Welkom!</h1>
-	</div>
-
-@endsection
-
-```
-
-Nu zie je de voordelen van Blade, dankzij de @extends functie kunnen je erg gemakkelijk templates van elkaar laten extenden. Dit betekent dat alles wat in `app.blade.php` staat, om de section @content heen wordt geplaatst. Dus ook het menu!
-
-Ga vervolgens naar de homepagina en check je werk!
-
-We gaan logica maken voor het toevoegen van producten.
-Zet de volgende functie in de `ProductsController`
-
-```php
-  public function create() {
-    return view('products.new');
-  }
-```
-
-Maak een view aan in `/resources/views/products/new.blade.php`
-Zet het volgende in dit bestand:
-
-```php
-
-@extends('layouts.app')
-@section('content')
-<div class="container">
-	<h1>Product admin</h1>
-	<form method="post">
-	    <div class="form-group">
-	        <label for="name">Naam</label>
-	        <input type="text" name="name" id="name" class="form-control"/>
-	    </div>
-	        <div class="form-group">
-	        <label for="description">Beschrijving</label>
-	        <textarea name="description" id="description" class="form-control"/></textarea>
-	    </div>
-	    <div class="form-group">
-	        <label for="price">Prijs</label>
-	        <input type="number" name="price" id="price" class="form-control"/>
-	    </div>
-	    <div class="form-group">
-	        <div class="checkbox">
-	            <label for="status"><input type="checkbox" value="1" name="status" checked>Actief</label>
-	        </div>
-	    </div>
-	    {{ csrf_field() }}
-	    <input type="submit" name="submit" class="btn btn-succes" value="Opslaan">
+	<!-- in later lessen gaan we dit mooi maken... !-->
+	<h1>Bestelling plaatsen</h1>
+	<form method="POST" name="bestelling">
+		<label for="product">Wat voor bier wil je?</label>
+		
+		<select name="product">
+			<option value="">Selecteer een biermerk</option>
+			<option value="Hertog-Jan" selected">Hertog Jan</option>
+			<option value="Heineken">Heineken</option>
+		</select>
+		{{csrf_token}}
+		<input type="submit" value="Bestellen">
 	</form>
-</div>
-@endsection
-
 ```
 
-We gaan eerst een route toevoegen om onze post af te vangen en het nieuwe product op te slaan.
+Ga nu naar `/order/create` wat zie je?
+
+Maar wij willen natuurlijk onze producten hier staan, hoe gaan we dit dan doen?
+
+Pas de controller als volgt aan:
+Wat we hier doen is alle producten ophalen en meegeven aan onze view, zodat wij er toegang tot hebben.
 
 ```php
-Route::post('products/new', 'ProductsController@store')
-```
+// nu weet deze controller waar deze model zich bevindt.
+use App\Product;
 
-Maak de volgende functie in de `ProductsController`
-
-```php
-
-public function store(Request $request) {
-
-	$product = new Product;
-	
-	$this->validate($request,
-	[
-	    'name' => 'required|max:255',
-	    'price' => 'required',
-	    'description' => 'max:255',
-	    'status' => 'required',
-	]);
-	
-	$product->name = $request->name;
-	$product->price 	= $request->price;
-	$product->status = $request->status;
-	$product->description = $request->description;
-	$product->save();
-	
-	return redirect('/products');
+public function create() {
+  $products = Product::all();
+  return view('orders.create', compact('products'));
 }
-
 ```
 
-Maar wacht we zien nog geen errors wanneer je niks invult!
-Zet dit stukje code in je `new.blade.php` bestand om de errors te zien!
+Pas de HTML aan zodat we alle producten als optie kunnen tonen.
 
-```php
-@if (count($errors) > 0)
-     <div class="alert alert-danger">
-         <ul>
-             @foreach ($errors->all() as $error)
-                 <li>{{ $error }}</li>
-             @endforeach
-         </ul>
-     </div>
- @endif
+```html	
+<select name="product">
+	@foreach($products as $product)
+		<option value="{{$product->name}}">{{$product->name}}</option>
+	@endforeach
+</select>
 ```
-
-Als het goed is kunnen we nu producten toevoegen en zien wij deze verschijnen in ons tabel! Daarnaast worden ze gevalideerd!
-
-*Opdracht:*
-Maak een flash message wanneer er een nieuwe product is aangemaakt!
-Zie: https://laracasts.com/series/laravel-5-fundamentals/episodes/20 voor hulp!
-
