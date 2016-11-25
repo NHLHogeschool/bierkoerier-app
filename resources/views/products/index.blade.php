@@ -9,6 +9,7 @@
 				<a href="{{route('create-product')}}" class="btn btn-primary">
 					<span class="glyphicon glyphicon-plus" aria-hidden="true"></span> Product Toevoegen
 				</a>
+			</div>
 		</div>
 	</div>
 	<table class="table table-bordered" style="background-color: white">
