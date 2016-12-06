@@ -20,7 +20,7 @@ class CreateOrdersTable extends Migration
 			$table->text('description')->nullable();
 			$table->integer('status');
 			$table->float('amount')->nullable();
-			$table->decimal('long', 10, 7);
+			$table->decimal('lon', 10, 7);
 			$table->decimal('lat', 10, 7);
 			$table->timestamps();
         });

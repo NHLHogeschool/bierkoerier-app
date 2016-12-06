@@ -27,7 +27,7 @@ class OrdersController extends Controller
 			'amount' => 1,
 			'status' => 0,
 			'lat' => 53.201233,
-			'long' => 5.799913,
+			'lon' => 5.799913,
 		]);
 
 		$orderline = New OrderLine([

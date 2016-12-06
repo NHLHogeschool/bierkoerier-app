@@ -17,7 +17,7 @@ $table->integer('payment_id')->unsigned();
 $table->text('description')->nullable();
 $table->integer('status');
 $table->float('amount')->nullable();
-$table->decimal('long', 10, 7);
+$table->decimal('lon', 10, 7);
 $table->decimal('lat', 10, 7);
 $table->timestamps();
 ```
@@ -49,7 +49,7 @@ class Order extends Model
 	use Notifiable;
 	
 	protected $fillable = [
-	    'amount', 'status', 'description', 'lat', 'long', 'user_id', 'payment_id'
+	    'amount', 'status', 'description', 'lat', 'lon', 'user_id', 'payment_id'
 	];
 	
 	public function orderlines()
@@ -136,7 +136,7 @@ public function store(Request $request)
         'amount' => 1,
         'status' => 0,
         'lat' => 53.201233,
-        'long' => 5.799913,
+        'lon' => 5.799913,
     ]);
 
     $orderline = New OrderLine([
@@ -219,6 +219,5 @@ public function toArray($notifiable)
 ```
 
 Zet dit in je env file
-
 	MAIL_USERNAME=149ad88d0aeb08
 	MAIL_PASSWORD=cead3f26b1dcde
