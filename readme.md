@@ -219,5 +219,6 @@ public function toArray($notifiable)
 ```
 
 Zet dit in je env file
+
 	MAIL_USERNAME=149ad88d0aeb08
 	MAIL_PASSWORD=cead3f26b1dcde
