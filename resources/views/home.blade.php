@@ -8,7 +8,14 @@
                 <div class="panel-heading">Dashboard</div>
 
                 <div class="panel-body">
-                    You are logged in!
+<script type="text/javascript">
+navigator.geolocation.getCurrentPosition(function(location) {
+   console.log(location.coords.latitude);
+   console.log(location.coords.longitude);
+   console.log(location.coords.accuracy);
+ });
+
+</script>
                 </div>
             </div>
         </div>
