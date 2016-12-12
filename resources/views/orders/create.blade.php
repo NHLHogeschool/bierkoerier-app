@@ -8,7 +8,7 @@
 		<label for="product">Product</label>
 		<select name="product" class="form-control" id="product">
 		@foreach($products as $product)
-			<option value="{{$product->name}}">{{$product->name}}</option>
+			<option value="{{$product->id}}">{{$product->name}}</option>
 		@endforeach
 		</select>
 	</div>

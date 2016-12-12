@@ -37,7 +37,6 @@ class OrdersController extends Controller
 		]);
 
 		$order->orderlines()->save($orderline);
-
 		$user = User::first();
 		$user->notify(New OrderCreated($order));
 		return "success";

@@ -22,8 +22,5 @@ Route::get('/products', 'ProductsController@index')->name('products');
 Route::get('/products/new', 'ProductsController@create')->name('create-product');
 Route::post('products/new', 'ProductsController@store');
 
-
-Route::get('/home', 'HomeController@index');
-
 Route::get('/orders/new', 'OrdersController@create');
 Route::post('/orders/new', 'OrdersController@store');
