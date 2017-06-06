@@ -15,7 +15,7 @@ Route::get('/products', 'ProductsController@index')->name('products');
 
 Maar waar gaan we deze route gebruiken? Misschien wel handig om een link toe te voegen aan het huidige "menu" (naast login en logout).
 
-Ga vervolgens naar `resources/views/app.blade.php` en voeg daar het volgende menu item aan het huidige menu. Hier staat al een hoop standaard code waaronder code die checkt of je al ingelogt bent ja of nee (mega handig).
+Ga vervolgens naar `resources/views/layouts/app.blade.php` en voeg daar het volgende menu item aan het huidige menu. Hier staat al een hoop standaard code waaronder code die checkt of je al ingelogt bent ja of nee (mega handig).
 
 Voeg deze regel toe, in de @else van de authenticatie check.
 
